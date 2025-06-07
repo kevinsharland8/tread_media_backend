@@ -1,0 +1,52 @@
+from pydantic import BaseModel
+from datetime import datetime
+
+# base model for the events (updating and adding data)
+class Event(BaseModel):
+    event_name: str
+    event_description: str
+    start_date: datetime
+    end_date: datetime
+    province: str
+    event_date: datetime
+    event_website: str
+    organizer: str
+    active: bool
+    headline_image: str
+    promotion_images: str
+    map_link: str
+
+# base model for the events with the id (returning data)
+class Event_id(BaseModel):
+    id: int
+    event_name: str
+    event_description: str
+    start_date: datetime
+    end_date: datetime
+    province: str
+    event_date: datetime
+    event_website: str
+    organizer: str
+    active: bool
+    headline_image: str
+    promotion_images: str
+    map_link: str
+
+# base model for the users (updating and adding data)
+class User(BaseModel):
+    email: str
+    first_name: str
+    last_name: str
+    google_id: str
+    created_at: datetime
+    updated_at: datetime
+
+# base model for the users with the id (returning data)
+class User_id(BaseModel):
+    id: int
+    email: str
+    first_name: str
+    last_name: str
+    google_id: str
+    created_at: datetime
+    updated_at: datetime    
