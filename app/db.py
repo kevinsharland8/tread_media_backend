@@ -1,16 +1,20 @@
 import asyncpg
 from typing import List, Callable, Any, Optional
 from fastapi import HTTPException
+from settings import POSTGRES_PORT, POSTGRES_DATABASE, POSTGRES_HOST, POSTGRES_PASSWORD, POSTGRES_USER
 
 
 conn_pool: Optional[asyncpg.Pool] = None
 
 # move to a secret file
-user = "postgres"
-database = "tread_media"
-password = "password"
+user = POSTGRES_USER
+database = POSTGRES_DATABASE
+password = POSTGRES_PASSWORD
+hostname = POSTGRES_HOST
+port = POSTGRES_PORT
 
-DATABASE_URL = f"postgres://{user}:{password}@localhost:5436/{database}"
+DATABASE_URL = f"postgres://{user}:{password}@{hostname}:{port}/{database}"
+print(DATABASE_URL, "--------------------------------------------we are herrrreeeeeeeeeeee")
 
 
 # start up postgres connections

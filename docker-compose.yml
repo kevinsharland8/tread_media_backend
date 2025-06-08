@@ -16,20 +16,23 @@ services:
       - database    
     networks:
       app_net:
-        ipv4_address: 172.20.0.16
+        ipv4_address: 172.20.0.2
 
   database:
     image: postgres:15
     container_name: tread-media-database
     ports:
-      - "5436:5432"
+      - "5432:5432"
     restart: on-failure
-    # volumes:
-      # - postgres:/var/lib/postgresql/data
+    volumes:
+      - postgres:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD : ${password}
-      POSTGRES_DB : ${db_name}
-      POSTGRES_USER: ${user}
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DATABASE
+      POSTGRES_USER: $POSTGRES_USER
+    networks:
+      app_net:
+        ipv4_address: 172.20.0.3      
 
 
 volumes:

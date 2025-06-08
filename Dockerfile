@@ -13,13 +13,15 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 
 RUN mkdir /root/app/
 
-COPY /app/ /root/
 COPY poetry.lock /root/app/
 COPY pyproject.toml /root/app/
+COPY .env.prod /root/app/
 
 WORKDIR /root/app/
 RUN poetry config virtualenvs.in-project true && \
     poetry install --no-root
+
+COPY /app/ /root/app/
 
 COPY start.sh /root/
 

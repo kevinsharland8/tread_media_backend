@@ -5,6 +5,8 @@ __pycache__/
 
 # virtual env
 .env
+.env.prod
+.env.dev
 
 # poetry
 poetry.lock
@@ -13,3 +15,4 @@ poetry.lock
 notes.txt
 TODO.txt
 # app/api/v1/route_users_v2.py
+docker-compose-dev.yml
