@@ -10,12 +10,10 @@ from db import (
 from typing import List
 import asyncpg
 
-event_router = APIRouter()
+event_router = APIRouter(prefix="/event", tags=["event"])
 
 
-@event_router.get(
-    "/all_events", response_model=List[Event_id], status_code=status.HTTP_200_OK
-)
+@event_router.get("/", response_model=List[Event_id], status_code=status.HTTP_200_OK)
 async def event(
     db_pool: asyncpg.Pool = Depends(get_postgres),
 ) -> List[Event_id]:
@@ -24,14 +22,14 @@ async def event(
 
 
 @event_router.get(
-    "/event/{event_id}", response_model=List[Event_id], status_code=status.HTTP_200_OK
+    "/{event_id}", response_model=List[Event_id], status_code=status.HTTP_200_OK
 )
 async def single_event(
     event_id: int,
     db_pool: asyncpg.Pool = Depends(get_postgres),
 ) -> List[Event_id]:
     if not event_id:
-        raise HTTPException(status_code=400, detail="No id provided") 
+        raise HTTPException(status_code=400, detail="No id provided")
     query = """
     select id, event_name, event_description, start_date, end_date, province, event_date, event_website, organizer, active, headline_image, promotion_images, map_link from events where id = $1;
     """
@@ -40,13 +38,13 @@ async def single_event(
     )
 
 
-@event_router.post("/event", status_code=status.HTTP_201_CREATED)
+@event_router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_event(
     event: Event,
     db_pool: asyncpg.Pool = Depends(get_postgres),
 ):
     if not event:
-        raise HTTPException(status_code=400, detail="No fields provided for insert")    
+        raise HTTPException(status_code=400, detail="No fields provided for insert")
     query = """
     INSERT INTO events (event_name, event_description, start_date, end_date, province, event_date, event_website, organizer, active, headline_image, promotion_images, map_link)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
@@ -71,7 +69,7 @@ async def create_event(
     )
 
 
-@event_router.patch("/event/{event_id}", status_code=status.HTTP_200_OK)
+@event_router.patch("/{event_id}", status_code=status.HTTP_200_OK)
 async def update_event(
     event_id: int,
     event: Event,
@@ -102,13 +100,13 @@ async def update_event(
     )
 
 
-@event_router.delete("/event/{event_id}", status_code=status.HTTP_200_OK)
+@event_router.delete("/{event_id}", status_code=status.HTTP_200_OK)
 async def delete_event(
     event_id: int,
     db_pool: asyncpg.Pool = Depends(get_postgres),
 ):
     if not event_id:
-        raise HTTPException(status_code=400, detail="No id provided for deleting")    
+        raise HTTPException(status_code=400, detail="No id provided for deleting")
     query = f"""
     delete from events where id = {event_id};
     """

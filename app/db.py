@@ -1,7 +1,14 @@
 import asyncpg
 from typing import List, Callable, Any, Optional
 from fastapi import HTTPException
-from settings import POSTGRES_PORT, POSTGRES_DATABASE, POSTGRES_HOST, POSTGRES_PASSWORD, POSTGRES_USER
+from settings import (
+    POSTGRES_PORT,
+    POSTGRES_DATABASE,
+    POSTGRES_HOST,
+    POSTGRES_PASSWORD,
+    POSTGRES_USER,
+)
+from settings import pg_pool_min_size, pg_pool_max_size
 
 
 conn_pool: Optional[asyncpg.Pool] = None
@@ -14,7 +21,6 @@ hostname = POSTGRES_HOST
 port = POSTGRES_PORT
 
 DATABASE_URL = f"postgres://{user}:{password}@{hostname}:{port}/{database}"
-print(DATABASE_URL, "--------------------------------------------we are herrrreeeeeeeeeeee")
 
 
 # start up postgres connections
@@ -23,7 +29,9 @@ async def init_postgres() -> None:
     try:
         print("Initializing PostgreSQL connection pool...")
 
-        conn_pool = await asyncpg.create_pool(dsn=DATABASE_URL, min_size=2, max_size=10)
+        conn_pool = await asyncpg.create_pool(
+            dsn=DATABASE_URL, min_size=pg_pool_min_size, max_size=pg_pool_max_size
+        )
         print("PostgreSQL connection pool created successfully.")
 
     except Exception as e:
@@ -73,7 +81,7 @@ async def fetch_with_error_handling(
                 results = await conn.fetch(query, query_filters)
             else:
                 results = await conn.fetch(query)
-                # model(**dict(row)) unpacks the dict as model(key1=value1, key2=value2, ...), which is what Pydantic models expect
+            # model(**dict(row)) unpacks the dict as model(key1=value1, key2=value2, ...), which is what Pydantic models expect
             return [model(**dict(row)) for row in results]
     except Exception as e:
         print(f"Database error: {e}")
@@ -119,6 +127,7 @@ async def delete_with_error_handling(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete {e}")
 
+
 # generic function to insert data in the database
 async def insert_with_error_handling(
     db_pool: asyncpg.Pool,
@@ -132,7 +141,9 @@ async def insert_with_error_handling(
             # *query_filters means unpack the list
             results = await conn.execute(query, *query_filters)
             if results.endswith("0"):
-                raise HTTPException(status_code=500, detail="Data was not inserted correctly")
+                raise HTTPException(
+                    status_code=500, detail="Data was not inserted correctly"
+                )
             return {"detail": "Inserted successfully"}
     except HTTPException as http_exc:
         raise http_exc

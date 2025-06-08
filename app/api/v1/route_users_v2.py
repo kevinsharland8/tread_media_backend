@@ -10,11 +10,11 @@ from db import (
 from typing import List
 import asyncpg
 
-user_router = APIRouter()
+user_router = APIRouter(prefix="/user", tags=["user"])
 
 
 @user_router.get(
-    "/all_users", response_model=List[User_id], status_code=status.HTTP_200_OK
+    "/", response_model=List[User_id], status_code=status.HTTP_200_OK
 )
 async def get_users(
     db_pool: asyncpg.Pool = Depends(get_postgres),
@@ -24,7 +24,7 @@ async def get_users(
 
 
 @user_router.get(
-    "/user/{user_id}", response_model=List[User_id], status_code=status.HTTP_200_OK
+    "/{user_id}", response_model=List[User_id], status_code=status.HTTP_200_OK
 )
 async def single_user(
     user_id: int,
@@ -40,7 +40,7 @@ async def single_user(
     )
 
 
-@user_router.post("/user", status_code=status.HTTP_201_CREATED)
+@user_router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(
     user: User,
     db_pool: asyncpg.Pool = Depends(get_postgres),
@@ -65,7 +65,7 @@ async def create_user(
     )
 
 
-@user_router.patch("/user/{user_id}", status_code=status.HTTP_200_OK)
+@user_router.patch("/{user_id}", status_code=status.HTTP_200_OK)
 async def update_user(
     user_id: int,
     user: User,
@@ -89,7 +89,7 @@ async def update_user(
     )
 
 
-@user_router.delete("/user/{user_id}", status_code=status.HTTP_200_OK)
+@user_router.delete("/{user_id}", status_code=status.HTTP_200_OK)
 async def delete_user(
     user_id: int,
     db_pool: asyncpg.Pool = Depends(get_postgres),

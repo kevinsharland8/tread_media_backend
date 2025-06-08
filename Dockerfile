@@ -13,7 +13,6 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 
 RUN mkdir /root/app/
 
-COPY poetry.lock /root/app/
 COPY pyproject.toml /root/app/
 COPY .env.prod /root/app/
 
