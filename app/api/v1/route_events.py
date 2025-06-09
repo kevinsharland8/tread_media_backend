@@ -22,7 +22,7 @@ async def event(
 
 
 @event_router.get(
-    "/{event_id}", response_model=List[Event_id], status_code=status.HTTP_200_OK
+    "/{event_id}", response_model=Event_id, status_code=status.HTTP_200_OK
 )
 async def single_event(
     event_id: int,
@@ -80,7 +80,7 @@ async def update_event(
     query = f"""UPDATE events SET 
     event_name = $1, event_description = $2, start_date = $3, end_date = $4, province = $5, 
     event_date = $6, event_website = $7, organizer = $8, active = $9, headline_image = $10, 
-    promotion_images = $11, map_link = $12 WHERE id = {event_id};"""
+    promotion_images = $11, map_link = $12 WHERE id = $13;"""
     query_filters = [
         event.event_name,
         event.event_description,
@@ -94,6 +94,7 @@ async def update_event(
         event.headline_image,
         event.promotion_images,
         event.map_link,
+        event_id,
     ]
     return await patch_with_error_handling(
         db_pool=db_pool, query=query, query_filters=query_filters, model=Event
@@ -108,6 +109,6 @@ async def delete_event(
     if not event_id:
         raise HTTPException(status_code=400, detail="No id provided for deleting")
     query = f"""
-    delete from events where id = {event_id};
+    delete from events where id = $1;
     """
-    return await delete_with_error_handling(db_pool=db_pool, query=query, model=Event)
+    return await delete_with_error_handling(db_pool=db_pool, query=query, query_filters=event_id, model=Event)

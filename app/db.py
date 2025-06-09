@@ -79,10 +79,13 @@ async def fetch_with_error_handling(
         async with db_pool.acquire() as conn:
             if query_filters:
                 results = await conn.fetch(query, query_filters)
+                # model(**dict(row)) unpacks the dict as model(key1=value1, key2=value2, ...), which is what Pydantic models expect
+                # returns a single result
+                return model(**dict(results[0]))
             else:
                 results = await conn.fetch(query)
-            # model(**dict(row)) unpacks the dict as model(key1=value1, key2=value2, ...), which is what Pydantic models expect
-            return [model(**dict(row)) for row in results]
+                # model(**dict(row)) unpacks the dict as model(key1=value1, key2=value2, ...), which is what Pydantic models expect
+                return [model(**dict(row)) for row in results]
     except Exception as e:
         print(f"Database error: {e}")
         raise HTTPException(status_code=500, detail="Database operation failed")
@@ -111,15 +114,17 @@ async def patch_with_error_handling(
 
 # generic function to delete data from the database
 async def delete_with_error_handling(
-    db_pool: asyncpg.pool,
+    db_pool: asyncpg.Pool,
     query: str,
+    query_filters: int,
     # the ... This means it accepts any number and types of arguments, when you pass in the pydantic model the data needs to conform to
     model: Callable[..., Any] = dict,
 ):
     try:
         async with db_pool.acquire() as conn:
-            results = await conn.execute(query)
-            if results.endswith("0"):
+            results = await conn.execute(query, query_filters)
+            _, count = results.split()
+            if int(count) == 0:
                 raise HTTPException(status_code=404, detail="ID not found for deleting")
             return {"detail": "Deleted successfully"}
     except HTTPException as http_exc:
@@ -140,7 +145,8 @@ async def insert_with_error_handling(
         async with db_pool.acquire() as conn:
             # *query_filters means unpack the list
             results = await conn.execute(query, *query_filters)
-            if results.endswith("0"):
+            _, _, count_2 = results.split()
+            if int(count_2) == 0:
                 raise HTTPException(
                     status_code=500, detail="Data was not inserted correctly"
                 )

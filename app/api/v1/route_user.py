@@ -24,7 +24,7 @@ async def get_users(
 
 
 @user_router.get(
-    "/{user_id}", response_model=List[User_id], status_code=status.HTTP_200_OK
+    "/{user_id}", response_model=User_id, status_code=status.HTTP_200_OK
 )
 async def single_user(
     user_id: int,
@@ -75,7 +75,7 @@ async def update_user(
         raise HTTPException(status_code=400, detail="No fields provided for update")
     query = f"""UPDATE users SET 
     email = $1, first_name = $2, last_name = $3, google_id = $4, created_at = $5, 
-    updated_at = $6 WHERE id = {user_id};"""
+    updated_at = $6 WHERE id = $7;"""
     query_filters = [
         user.email,
         user.first_name,
@@ -83,6 +83,7 @@ async def update_user(
         user.google_id,
         user.created_at,
         user.updated_at,
+        user_id,
     ]
     return await patch_with_error_handling(
         db_pool=db_pool, query=query, query_filters=query_filters, model=User
@@ -97,6 +98,6 @@ async def delete_user(
     if not user_id:
         raise HTTPException(status_code=400, detail="No id provided for deleting")
     query = f"""
-    delete from users where id = {user_id};
+    delete from users where id = $1;
     """
-    return await delete_with_error_handling(db_pool=db_pool, query=query, model=User)
+    return await delete_with_error_handling(db_pool=db_pool, query=query, query_filters=user_id, model=User)
