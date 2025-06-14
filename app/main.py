@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from db import init_postgres, close_postgres
 from api.v1.route_events import event_router
 from api.v1.route_user import user_router
+from api.v1.route_upload import upload_router
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -29,6 +30,7 @@ app.add_middleware(
 # adding the routs to the application
 app.include_router(event_router)
 app.include_router(user_router)
+app.include_router(upload_router)
 
 
 @app.get("/")

@@ -16,3 +16,6 @@ notes.txt
 TODO.txt
 # app/api/v1/route_users_v2.py
 docker-compose-dev.yml
+images/*
+app/utils/test*
+app/utils/*xlsx
