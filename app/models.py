@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from decimal import Decimal
 
 # base model for the events (updating and adding data)
 class Event(BaseModel):
@@ -50,3 +51,12 @@ class User_id(BaseModel):
     google_id: str
     created_at: datetime
     updated_at: datetime    
+
+# base model for the distance (updateing and adding data)    
+class Distance(BaseModel):
+    distance: Decimal
+
+# base model for the distance with the id (return data)
+class Distance_id(BaseModel):
+    id: int
+    distance: Decimal
