@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 
 # dotenv_path = "../.env.dev"
-dotenv_path = "../.env.prod"
+dotenv_path = ".env.prod"
 
 load_dotenv(dotenv_path)
 
