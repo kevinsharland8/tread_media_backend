@@ -1,6 +1,7 @@
 import openpyxl
 from openpyxl_image_loader import SheetImageLoader
 import os
+from utils.upload_google import upload_to_bucket
 
 
 def extract_from_file(file):
@@ -29,5 +30,6 @@ def extract_from_file(file):
                 print(image_filename)
                 complete_path_image = os.path.join(output_directory, image_filename)
                 image.save(complete_path_image)
+                upload_to_bucket(complete_path_image, image_filename)
     except Exception as e:
         print(f"error Processing file, {e}")

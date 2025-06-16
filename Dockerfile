@@ -13,6 +13,11 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 
 RUN mkdir /root/app/
 
+RUN mkdir /home/kevin/projects/tread-events-python/images/
+RUN mkdir /home/kevin/projects/tread-events-python/
+
+COPY tread-media-f50f10bbaaf3.json /home/kevin/projects/tread-events-python/
+
 COPY pyproject.toml /root/app/
 COPY .env.prod /root/app/
 
