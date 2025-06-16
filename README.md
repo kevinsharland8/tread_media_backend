@@ -37,3 +37,8 @@ POSTGRES_DATABASE=db
 POSTGRES_HOST=host of the db
 POSTGRES_PORT=port
 ~~~
+
+# google credentials file needed
+~~~bash
+tread-media-f50f10bbaaf3.json
+~~~
