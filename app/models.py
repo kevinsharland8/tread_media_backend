@@ -73,3 +73,12 @@ class Evnet_image_id(BaseModel):
     event_id: int
     headline: bool
     image_url: str
+
+# base model for the event type (updateing and adding data)    
+class Event_type(BaseModel):
+    event_name: str
+
+# base model for the event type with the id (return data)
+class Event_type_id(BaseModel):
+    id: int
+    event_name: str
