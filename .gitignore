@@ -19,3 +19,4 @@ docker-compose-dev.yml
 images/*
 app/utils/test*
 app/utils/*xlsx
+tread-media-f50f10bbaaf3.json*
