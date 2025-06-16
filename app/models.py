@@ -60,3 +60,16 @@ class Distance(BaseModel):
 class Distance_id(BaseModel):
     id: int
     distance: Decimal
+
+# base model for the event images (updateing and adding data)    
+class Evnet_image(BaseModel):
+    event_id: int
+    headline: bool
+    image_url: str
+
+# base model for the event images with the id (return data)
+class Evnet_image_id(BaseModel):
+    id: int
+    event_id: int
+    headline: bool
+    image_url: str

@@ -144,13 +144,12 @@ async def insert_with_error_handling(
     try:
         async with db_pool.acquire() as conn:
             # *query_filters means unpack the list
-            results = await conn.execute(query, *query_filters)
-            _, _, count_2 = results.split()
-            if int(count_2) == 0:
+            results = await conn.fetchrow(query, *query_filters)
+            if not results["id"] > 0:
                 raise HTTPException(
                     status_code=500, detail="Data was not inserted correctly"
                 )
-            return {"detail": "Inserted successfully"}
+            return {"detail": "Inserted successfully", "result": results["id"]}
     except HTTPException as http_exc:
         raise http_exc
     except Exception as e:
