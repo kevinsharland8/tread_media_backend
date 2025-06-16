@@ -24,7 +24,7 @@ async def uploads(
         print(f"error, {e}")
 
     try:
-        extract_from_file(temp_path)
+        await extract_from_file(temp_path)
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to process Excel file: {e}"
