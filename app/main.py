@@ -22,7 +22,7 @@ app: FastAPI = FastAPI(lifespan=lifespan, title="Tread Media Application")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],  # Or restrict to specific domains
+    allow_origins=["http://localhost:4200", "http://192.168.68.145:4200"],  # Or restrict to specific domains
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
