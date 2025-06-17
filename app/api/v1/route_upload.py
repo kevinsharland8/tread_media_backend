@@ -1,13 +1,13 @@
-from fastapi import HTTPException, APIRouter, File, UploadFile
+from fastapi import HTTPException, APIRouter, File, UploadFile, status
 from utils.excel_import import extract_from_file
 import tempfile
 import shutil
-import os 
+import os
 
 upload_router = APIRouter(prefix="/upload", tags=["upload"])
 
 
-@upload_router.post("/file")
+@upload_router.post("/file", status_code=status.HTTP_200_OK)
 async def uploads(
     file: UploadFile = File(...),
 ):
@@ -24,7 +24,13 @@ async def uploads(
         print(f"error, {e}")
 
     try:
-        await extract_from_file(temp_path)
+        run = await extract_from_file(temp_path)
+        if not run:
+            raise HTTPException(
+                status_code=500, detail=f"cannot find the image in the xlsx file"
+            )
+        else:
+            return {"detail": "uploaded successfully"}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to process Excel file: {e}"

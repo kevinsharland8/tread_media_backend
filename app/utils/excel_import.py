@@ -86,7 +86,10 @@ async def extract_from_file(file):
                     print(clean_name)
                     upload_to_bucket(complete_path_image, clean_name)
                 except Exception as e:
-                    print(f"there is a n error copying it to the bucket {e}")                    
+                    print(f"there is a n error copying it to the bucket {e}")       
+                return True
+            else:
+                return False
 
     except Exception as e:
         print(f"error Processing file, {e}")
