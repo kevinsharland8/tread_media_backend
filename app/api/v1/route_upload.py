@@ -1,5 +1,6 @@
 from fastapi import HTTPException, APIRouter, File, UploadFile, status
 from utils.excel_import import extract_from_file
+from utils.upload_google import upload_to_bucket
 import tempfile
 import shutil
 import os
@@ -39,3 +40,32 @@ async def uploads(
         # Clean up temp file
         if os.path.exists(temp_path):
             os.remove(temp_path)
+
+
+@upload_router.post("/images", status_code=status.HTTP_200_OK)
+async def uploads_images(files: list[UploadFile] = File(...)):
+    saved_files = []
+    for image in files:
+        image_name = image.filename
+        saved_files.append(image_name)
+        if not image.content_type.startswith("image/"):
+            raise HTTPException(
+                status_code=400, detail=f"{image.filename} is not a valid image"
+            )
+        output_directory = "/home/kevin/projects/tread-events-python/images/"
+        file_path = os.path.join(output_directory, image.filename)
+        try:
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(image.file, buffer)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"Failed to process images: {e}"
+            )
+        try:
+            complete_path_image = os.path.join(output_directory, image_name)
+            upload_to_bucket(complete_path_image, image_name)
+        except:
+            raise HTTPException(
+                status_code=500, detail=f"Failed to load images to bucket: {e}"
+            )
+    return {"uploaded_files": saved_files}
