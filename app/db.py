@@ -79,16 +79,25 @@ async def fetch_with_error_handling(
         async with db_pool.acquire() as conn:
             if query_filters:
                 results = await conn.fetch(query, query_filters)
-                # model(**dict(row)) unpacks the dict as model(key1=value1, key2=value2, ...), which is what Pydantic models expect
-                # returns a single result
-                return model(**dict(results[0]))
+                if len(results) == 0:
+                    raise HTTPException(
+                        status_code=500, detail="event does not exist"
+                    )
+                else:
+                    # model(**dict(row)) unpacks the dict as model(key1=value1, key2=value2, ...), which is what Pydantic models expect
+                    # returns a single result
+                    return model(**dict(results[0]))
             else:
                 results = await conn.fetch(query)
-                # model(**dict(row)) unpacks the dict as model(key1=value1, key2=value2, ...), which is what Pydantic models expect
-                return [model(**dict(row)) for row in results]
+                if len(results) == 0:
+                    raise HTTPException(
+                        status_code=500, detail="event does not exist"
+                    )
+                else:
+                    # model(**dict(row)) unpacks the dict as model(key1=value1, key2=value2, ...), which is what Pydantic models expect
+                    return [model(**dict(row)) for row in results]
     except Exception as e:
-        print(f"Database error: {e}")
-        raise HTTPException(status_code=500, detail="Database operation failed")
+        raise HTTPException(status_code=500, detail=f"Database operation failed, {e}")
 
 
 # generic function to update data in the database

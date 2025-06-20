@@ -1,5 +1,5 @@
 from fastapi import HTTPException, APIRouter, Depends, status
-from models import Event, Event_id
+from models import Event, Event_id, EventMainDisplay
 from db import (
     get_postgres,
     fetch_with_error_handling,
@@ -17,7 +17,7 @@ event_router = APIRouter(prefix="/event", tags=["event"])
 async def event(
     db_pool: asyncpg.Pool = Depends(get_postgres),
 ) -> List[Event_id]:
-    query = "Select id, event_name, event_description, start_date, end_date, province, event_date, event_website, organizer, active, headline_image, promotion_images, map_link from events;"
+    query = "Select id, name, description, start_date, end_date, city, province, event_website, organizer, active, map_link, event_type_id, multi_day from events;"
     return await fetch_with_error_handling(db_pool=db_pool, query=query, model=Event_id)
 
 
@@ -31,11 +31,48 @@ async def single_event(
     if not event_id:
         raise HTTPException(status_code=400, detail="No id provided")
     query = """
-    select id, event_name, event_description, start_date, end_date, province, event_date, event_website, organizer, active, headline_image, promotion_images, map_link from events where id = $1;
+    select id, name, description, start_date, end_date, city, province, event_website, organizer, active, map_link, event_type_id, multi_day from events where id = $1;
     """
     return await fetch_with_error_handling(
         db_pool=db_pool, query=query, query_filters=event_id, model=Event_id
     )
+
+
+@event_router.get(
+    "/details/{event_id}",
+    response_model=EventMainDisplay,
+    status_code=status.HTTP_200_OK,
+)
+async def details_event(
+    event_id: int,
+    db_pool: asyncpg.Pool = Depends(get_postgres),
+) -> List[EventMainDisplay]:
+    if not event_id:
+        raise HTTPException(status_code=400, detail="No id provided")
+    query = """
+    SELECT 
+    e.id, e.name, e.description, e.start_date, e.end_date, e.city, e.province, e.event_website, e.organizer, e.active, e.map_link, e.multi_day,
+    -- Aggregate event images
+    json_agg(DISTINCT jsonb_build_object(
+        'headline', ei.headline, 
+        'url', ei.url
+    )) AS images,
+    -- Aggregate distances
+    json_agg(DISTINCT jsonb_build_object(
+        'day', ed.day, 
+        'distance', ed.distance
+    )) AS day_distance,
+    et.type
+    FROM events e
+    JOIN event_images ei ON e.id = ei.event_id
+    JOIN event_distances ed ON e.id = ed.event_id
+    JOIN event_types et ON e.event_type_id = et.id
+    WHERE e.id = $1 GROUP BY e.id, et.type;
+    """
+    data_returned =  await fetch_with_error_handling(
+        db_pool=db_pool, query=query, query_filters=event_id, model=EventMainDisplay
+    )
+    return data_returned
 
 
 @event_router.post("/", status_code=status.HTTP_201_CREATED)
@@ -46,23 +83,23 @@ async def create_event(
     if not event:
         raise HTTPException(status_code=400, detail="No fields provided for insert")
     query = """
-    INSERT INTO events (event_name, event_description, start_date, end_date, province, event_date, event_website, organizer, active, headline_image, promotion_images, map_link)
+    INSERT INTO events (name, description, start_date, end_date, city, province, event_website, organizer, active, map_link, event_type_id, multi_day)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-    RETURNING id, event_name, event_description, start_date, end_date, province, event_date, event_website, organizer, active, headline_image, promotion_images, map_link;
+    RETURNING id, name, description, start_date, end_date, city, province, event_website, organizer, map_link, event_type_id, multi_day;
     """
     query_filters = [
-        event.event_name,
-        event.event_description,
+        event.name,
+        event.description,
         event.start_date,
         event.end_date,
+        event.city,
         event.province,
-        event.event_date,
         event.event_website,
         event.organizer,
         event.active,
-        event.headline_image,
-        event.promotion_images,
         event.map_link,
+        event.event_type_id,
+        event.multi_day
     ]
     return await insert_with_error_handling(
         db_pool=db_pool, query=query, query_filters=query_filters, model=Event
@@ -78,22 +115,22 @@ async def update_event(
     if not event:
         raise HTTPException(status_code=400, detail="No fields provided for update")
     query = f"""UPDATE events SET 
-    event_name = $1, event_description = $2, start_date = $3, end_date = $4, province = $5, 
-    event_date = $6, event_website = $7, organizer = $8, active = $9, headline_image = $10, 
-    promotion_images = $11, map_link = $12 WHERE id = $13;"""
+    name = $1, description = $2, start_date = $3, end_date = $4, city = $5, 
+    province = $6, event_website = $7, organizer = $8, active = $9, map_link = $10, 
+    event_type_id = $11, multi_day=$12 WHERE id = $13;"""
     query_filters = [
-        event.event_name,
-        event.event_description,
+        event.name,
+        event.description,
         event.start_date,
         event.end_date,
+        event.city,
         event.province,
-        event.event_date,
         event.event_website,
         event.organizer,
         event.active,
-        event.headline_image,
-        event.promotion_images,
         event.map_link,
+        event.event_type_id,
+        event.multi_day,
         event_id,
     ]
     return await patch_with_error_handling(
@@ -111,4 +148,6 @@ async def delete_event(
     query = f"""
     delete from events where id = $1;
     """
-    return await delete_with_error_handling(db_pool=db_pool, query=query, query_filters=event_id, model=Event)
+    return await delete_with_error_handling(
+        db_pool=db_pool, query=query, query_filters=event_id, model=Event
+    )

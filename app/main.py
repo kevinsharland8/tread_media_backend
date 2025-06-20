@@ -31,10 +31,10 @@ app.add_middleware(
 
 # adding the routs to the application
 app.include_router(event_router)
-app.include_router(user_router)
-app.include_router(upload_router)
-app.include_router(distance_router)
-app.include_router(event_type_router)
+# app.include_router(user_router)
+# app.include_router(upload_router)
+# app.include_router(distance_router)
+# app.include_router(event_type_router)
 
 
 @app.get("/")
