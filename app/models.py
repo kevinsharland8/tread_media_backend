@@ -13,7 +13,7 @@ class Event(BaseModel):
     end_date: date
     city: str = Field(..., max_length=100)
     province: str = Field(..., max_length=100)
-    event_website: Optional[HttpUrl] = Field(None, max_length=1000)
+    event_website: str = Field(..., max_length=1000)
     organizer: str = Field(..., max_length=100)
     active: bool = True
     map_link: Optional[str] = Field(None, max_length=1000)
@@ -30,7 +30,7 @@ class Event_id(BaseModel):
     end_date: date
     city: str = Field(..., max_length=100)
     province: str = Field(..., max_length=100)
-    event_website: Optional[HttpUrl] = Field(None, max_length=1000)
+    event_website: str = Field(..., max_length=1000)
     organizer: str = Field(..., max_length=100)
     active: bool = True
     map_link: Optional[str] = Field(None, max_length=1000)
@@ -51,13 +51,13 @@ class EventImage(BaseModel):
     id: int
     event_id: int
     headline: bool = False
-    url: HttpUrl = Field(..., max_length=1000)
+    url: str = Field(..., max_length=1000)
 
 
 class EventImage_id(BaseModel):
     event_id: int
     headline: bool = False
-    url: HttpUrl = Field(..., max_length=1000)
+    url: str = Field(..., max_length=1000)
 
 
 class EventDistance(BaseModel):
@@ -74,7 +74,7 @@ class EventDistance_id(BaseModel):
 
 
 class Image(BaseModel):
-    url: HttpUrl
+    url: str = Field(..., max_length=1000)
     headline: bool
 
 
@@ -91,7 +91,7 @@ class EventMainDisplay(BaseModel):
     end_date: date
     city: str = Field(..., max_length=100)
     province: str = Field(..., max_length=100)
-    event_website: Optional[HttpUrl] = Field(None, max_length=1000)
+    event_website: str = Field(..., max_length=1000)
     organizer: str = Field(..., max_length=100)
     active: bool = True
     map_link: Optional[str] = Field(None, max_length=1000)
