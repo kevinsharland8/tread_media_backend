@@ -41,7 +41,7 @@ async def insert_data(event: Event, event_image: str) -> Event:
     RETURNING id, event_id, headline, url;
     """
 
-    query_filters = [unique_event_id["result"], True, event_image]
+    query_filters = [unique_event_id["result"], True, f"https://storage.googleapis.com/tread_media_images/{event_image}"]
 
     unique_event_image_id = await insert_with_error_handling(
         db_pool=db_pool, query=query, query_filters=query_filters, model=Event
@@ -83,7 +83,7 @@ async def extract_from_file(file):
                 try:
                     clean_name = f'eid_{insert_into_tables["results"][0]["result"]}_eiid_{insert_into_tables["results"][1]["result"]}.png'
                     # print(clean_name)
-                    upload_to_bucket(complete_path_image, clean_name)
+                    upload_to_bucket(complete_path_image, image_filename)
                 except Exception as e:
                     print(f"there is a n error copying it to the bucket {e}")       
             else:
