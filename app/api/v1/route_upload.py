@@ -1,6 +1,7 @@
 from fastapi import HTTPException, APIRouter, File, UploadFile, status
 from utils.excel_import import extract_from_file
 from utils.upload_google import upload_to_bucket
+from utils.inserting_multi_images import insert_data
 import tempfile
 import shutil
 import os
@@ -43,7 +44,9 @@ async def uploads(
 
 
 @upload_router.post("/images", status_code=status.HTTP_200_OK)
-async def uploads_images(files: list[UploadFile] = File(...)):
+async def uploads_images(
+    event_id: int,
+    files: list[UploadFile] = File(...)):
     saved_files = []
     for image in files:
         image_name = image.filename
@@ -60,6 +63,12 @@ async def uploads_images(files: list[UploadFile] = File(...)):
         except Exception as e:
             raise HTTPException(
                 status_code=500, detail=f"Failed to process images: {e}"
+            )
+        try:
+            await insert_data(event_id, image_name)
+        except:
+            raise HTTPException(
+                status_code=500, detail=f"Failed to insert image to db"
             )
         try:
             complete_path_image = os.path.join(output_directory, image_name)
