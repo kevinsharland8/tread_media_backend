@@ -3,6 +3,7 @@ select * from event_types;
 select * from event_images;
 select * from event_distances;
 select * from users;
+select * from provinces;
 
 delete from events;
 
@@ -13,8 +14,11 @@ drop index idx_events_event_type_id;
 drop table event_types CASCADE;;
 drop table event_images;
 drop table event_distances;
+drop table favorite_event;
 drop table users;
+drop table event_event_types_junction;
 drop table events;
+drop table provinces;
 
 
 CREATE TABLE IF NOT EXISTS public.events
@@ -26,6 +30,7 @@ CREATE TABLE IF NOT EXISTS public.events
     end_date date NOT NULL,
     city character varying(100) NOT NULL,
     province character varying(100) NOT NULL,
+    province_id integer NOT NULL,
     event_website character varying(1000),
     organizer character varying(100) NOT NULL,
     active boolean NOT NULL DEFAULT true,
@@ -84,11 +89,26 @@ CREATE TABLE IF NOT EXISTS public.favorite_event
     UNIQUE (user_id, event_id)
 );
 
+CREATE TABLE IF NOT EXISTS public.provinces
+(
+    id serial NOT NULL,
+    name character varying(100) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.event_event_types_junction
+(
+    event_id integer NOT NULL,
+    event_event_types_junction integer NOT NULL,
+    PRIMARY KEY (event_id, event_event_types_junction)
+);
+
 ALTER TABLE IF EXISTS public.events
-    ADD FOREIGN KEY (event_type_id)
-    REFERENCES public.event_types (id) MATCH SIMPLE
+    ADD FOREIGN KEY (province_id)
+    REFERENCES public.provinces (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
+    ON DELETE NO ACTION
+    NOT VALID;
 
 
 ALTER TABLE IF EXISTS public.event_images
@@ -116,6 +136,22 @@ ALTER TABLE IF EXISTS public.favorite_event
     REFERENCES public.events (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.event_event_types_junction
+    ADD FOREIGN KEY (event_id)
+    REFERENCES public.events (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.event_event_types_junction
+    ADD FOREIGN KEY (event_event_types_junction)
+    REFERENCES public.event_types (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
 
 ----------------------------------------
 -- Create the trigger function
@@ -145,78 +181,24 @@ CREATE INDEX idx_event_distances_event_id ON public.event_distances(event_id);
 
 -- Seed event_types
 INSERT INTO public.event_types (type) VALUES
-('Marathon'),
-('Triathlon'),
-('Cycling'),
-('Trail Run'),
-('Charity Walk');
+('XCO'),
+('Marathon/Half-marathon'),
+('Ultra-marathon'),
+('Stage Race'),
+('Gravel'),
+('24-Hour'),
+('Ultra-endurance'),
+('Enduro'),
+('Downhill');
 
--- Seed users
-INSERT INTO public.users (first_name, last_name, email, google_id, role) VALUES
-('Alice', 'Smith', 'alice@example.com', NULL, 'user'),
-('Bob', 'Johnson', 'bob@example.com', NULL, 'admin'),
-('Carol', 'Williams', 'carol@example.com', NULL, 'user'),
-('David', 'Brown', 'david@example.com', NULL, 'user'),
-('Eva', 'Jones', 'eva@example.com', NULL, 'user'),
-('Frank', 'Garcia', 'frank@example.com', NULL, 'user'),
-('Grace', 'Martinez', 'grace@example.com', NULL, 'admin'),
-('Henry', 'Davis', 'henry@example.com', NULL, 'user'),
-('Isabel', 'Lopez', 'isabel@example.com', NULL, 'user'),
-('Jack', 'Wilson', 'jack@example.com', NULL, 'user');
-
--- Seed events (event_type_id from 1 to 5)
-INSERT INTO public.events (
-    name, description, start_date, end_date, city, province,
-    event_website, organizer, event_type_id, multi_day
-) VALUES
-('Cape Town Marathon', 'Annual city marathon.', '2025-10-05', '2025-10-05', 'Cape Town', 'Western Cape', 'https://capetownmarathon.com', 'Cape Town Athletics', 1, false),
-('Durban Triathlon', 'Swim, cycle, and run on the coast.', '2025-09-12', '2025-09-13', 'Durban', 'KwaZulu-Natal', 'https://durbantri.co.za', 'TriEvents SA', 2, true),
-('Jozi Cycle Classic', 'Urban cycling race through Johannesburg.', '2025-08-20', '2025-08-20', 'Johannesburg', 'Gauteng', NULL, 'Cycle Jozi', 3, false),
-('Drakensberg Trail Run', 'Scenic trail run in the mountains.', '2025-07-01', '2025-07-02', 'Drakensberg', 'KwaZulu-Natal', 'https://draktrail.com', 'Nature Trails SA', 4, true),
-('Mandela Charity Walk', 'Annual walk to raise funds.', '2025-09-01', '2025-09-01', 'Pretoria', 'Gauteng', NULL, 'Mandela Foundation', 5, false),
-('Soweto Marathon', 'Run through the historic townships.', '2025-11-03', '2025-11-03', 'Soweto', 'Gauteng', NULL, 'Soweto Runners', 1, false),
-('Garden Route Tri', 'Endurance event along the coast.', '2025-12-14', '2025-12-15', 'George', 'Western Cape', NULL, 'GR Events', 2, true),
-('Cape Cycle Tour', 'Scenic coastal cycle race.', '2025-03-10', '2025-03-10', 'Cape Town', 'Western Cape', 'https://capecycle.co.za', 'Cape Cycling Club', 3, false),
-('Kruger Trail Challenge', 'Adventure running in the bush.', '2025-06-10', '2025-06-11', 'Kruger Park', 'Limpopo', NULL, 'Kruger Adventures', 4, true),
-('Charity Fun Walk', 'Community event to raise funds.', '2025-04-01', '2025-04-01', 'Port Elizabeth', 'Eastern Cape', NULL, 'Hope Foundation', 5, false);
-
--- Seed event_images
-INSERT INTO public.event_images (event_id, headline, url) VALUES
-(1, true, 'https://example.com/img/capetown.jpg'),
-(2, true, 'https://example.com/img/durban.jpg'),
-(3, false, 'https://example.com/img/jozi.jpg'),
-(4, true, 'https://example.com/img/drakensberg.jpg'),
-(5, false, 'https://example.com/img/mandela.jpg'),
-(6, true, 'https://example.com/img/soweto.jpg'),
-(7, false, 'https://example.com/img/gardenroute.jpg'),
-(8, true, 'https://example.com/img/capecycle.jpg'),
-(9, false, 'https://example.com/img/kruger.jpg'),
-(10, true, 'https://example.com/img/charity.jpg');
-
--- Seed event_distances (1 per event)
-INSERT INTO public.event_distances (event_id, day, distance) VALUES
-(1, 1, 42),
-(2, 1, 51),
-(2, 2, 30),
-(3, 1, 20),
-(4, 1, 18),
-(4, 2, 12),
-(5, 1, 5),
-(6, 1, 42),
-(7, 1, 40),
-(7, 2, 30);
-
--- Seed data
-INSERT INTO public.favorite_event (user_id, event_id) VALUES
-(1, 1),
-(1, 2),
-(2, 1),
-(2, 3),
-(3, 2),
-(3, 4),
-(4, 1),
-(4, 5),
-(5, 3),
-(5, 4);
-
+INSERT INTO public.provinces (name) VALUES
+('Free State'),
+('Gauteng'),
+('KwaZulu-Natal'),
+('Limpopo'),
+('Mpumalanga'),
+('Northern Cape'),
+('North West'),
+('Western Cape'),
+('Eastern Cape');
 ------------------------------------------------------------

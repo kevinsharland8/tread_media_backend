@@ -12,7 +12,7 @@ class Event(BaseModel):
     start_date: date
     end_date: date
     city: str = Field(..., max_length=100)
-    province: str = Field(..., max_length=100)
+    province_id: int
     event_website: str = Field(..., max_length=1000)
     organizer: str = Field(..., max_length=100)
     active: bool = True
@@ -29,7 +29,7 @@ class Event_id(BaseModel):
     start_date: date
     end_date: date
     city: str = Field(..., max_length=100)
-    province: str = Field(..., max_length=100)
+    province_id: int
     event_website: str = Field(..., max_length=1000)
     organizer: str = Field(..., max_length=100)
     active: bool = True
@@ -83,7 +83,10 @@ class DayDistance(BaseModel):
     distance: int
 
 
-class EventMainDisplay(BaseModel):
+class EventType(BaseModel):
+    event_type: str = Field(..., max_length=1000)
+
+class ExcelLoader(BaseModel):
     id: int
     name: str = Field(..., max_length=100)
     description: str = Field(..., max_length=1000)
@@ -95,11 +98,31 @@ class EventMainDisplay(BaseModel):
     organizer: str = Field(..., max_length=100)
     active: bool = True
     map_link: Optional[str] = Field(None, max_length=1000)
+    event_type_id: str = Field(..., max_length=100)
+    multi_day: bool = False   
+    distances: int
+
+
+
+class EventMainDisplay(BaseModel):
+    id: int
+    name: str = Field(..., max_length=100)
+    description: str = Field(..., max_length=1000)
+    start_date: date
+    end_date: date
+    city: str = Field(..., max_length=100)
+    event_website: str = Field(..., max_length=1000)
+    organizer: str = Field(..., max_length=100)
+    active: bool = True
+    map_link: Optional[str] = Field(None, max_length=1000)
     # allows for the data been returned from postgres as json to be added to the model
     images: List[Image] = Field(default_factory=list)
     # allows for the data been returned from postgres as json to be added to the model
     day_distance: List[DayDistance] = Field(default_factory=list)
     multi_day: bool = False
+    # allows for the data been returned from postgres as json to be added to the model
+    event_type: List[EventType] = Field(default_factory=list)
+    p_name: str = Field(..., max_length=100)
 
     # @model_validator is used to convert the json string into a list of dictionaries
     @model_validator(mode="before")
@@ -114,6 +137,11 @@ class EventMainDisplay(BaseModel):
                 values["day_distance"] = json.loads(values["day_distance"])
             except Exception:
                 values["day_distance"] = []
+        if isinstance(values.get("event_type"), str):
+            try:
+                values["event_type"] = json.loads(values["event_type"])
+            except Exception:
+                values["event_type"] = []
         return values
 
 
