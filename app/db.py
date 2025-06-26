@@ -81,7 +81,7 @@ async def fetch_with_error_handling(
                 results = await conn.fetch(query, query_filters)
                 if len(results) == 0:
                     raise HTTPException(
-                        status_code=500, detail="event does not exist"
+                        status_code=500, detail="data with parameters does not exist"
                     )
                 else:
                     # model(**dict(row)) unpacks the dict as model(key1=value1, key2=value2, ...), which is what Pydantic models expect
@@ -91,7 +91,7 @@ async def fetch_with_error_handling(
                 results = await conn.fetch(query)
                 if len(results) == 0:
                     raise HTTPException(
-                        status_code=500, detail="event does not exist"
+                        status_code=500, detail="data does not exist"
                     )
                 else:
                     # model(**dict(row)) unpacks the dict as model(key1=value1, key2=value2, ...), which is what Pydantic models expect

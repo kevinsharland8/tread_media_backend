@@ -17,7 +17,6 @@ class Event(BaseModel):
     organizer: str = Field(..., max_length=100)
     active: bool = True
     map_link: Optional[str] = Field(None, max_length=1000)
-    event_type_id: int
     multi_day: bool = False
 
 
@@ -34,17 +33,37 @@ class Event_id(BaseModel):
     organizer: str = Field(..., max_length=100)
     active: bool = True
     map_link: Optional[str] = Field(None, max_length=1000)
-    event_type_id: int
     multi_day: bool = False
 
 
-class EventType(BaseModel):
+class EventType_(BaseModel):
     id: int
     type: str = Field(..., max_length=100)
 
 
 class EventType_id(BaseModel):
     type: str = Field(..., max_length=100)
+
+
+class Provice_(BaseModel):
+    id: int
+    p_name: str = Field(..., max_length=100)
+
+
+class Provice_id(BaseModel):
+    p_name: str = Field(..., max_length=100)
+
+
+class JunctionTable(BaseModel):
+    event_id: int
+    event_type_id: int
+
+
+class JunctionTable_id(BaseModel):
+    id: int
+    event_id: int
+    event_type_id: int    
+
 
 
 class EventImage(BaseModel):
@@ -98,7 +117,6 @@ class ExcelLoader(BaseModel):
     organizer: str = Field(..., max_length=100)
     active: bool = True
     map_link: Optional[str] = Field(None, max_length=1000)
-    event_type_id: str = Field(..., max_length=100)
     multi_day: bool = False   
     distances: int
 
