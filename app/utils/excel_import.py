@@ -229,7 +229,7 @@ async def extract_from_file(file):
             try:
                 multi_true_false = row_dict["multi_day"]
                 counter = 0
-                if multi_true_false:
+                if not multi_true_false:
                     for event_distance_ in row_dict["distances"]:
                         await insert_event_distances(
                             int(float(insert_into_tables)),
