@@ -75,7 +75,85 @@ join event_distances ed on e.id = ed.event_id
 where e.id = $1
 GROUP BY e.id, p.p_name
     """
-    data_returned = await fetch_with_error_handling(
+    data_returned =  await fetch_with_error_handling(
         db_pool=db_pool, query=query, query_filters=event_id, model=EventMainDisplay
     )
     return data_returned
+
+
+@event_router.post("/", status_code=status.HTTP_201_CREATED)
+async def create_event(
+    event: Event,
+    db_pool: asyncpg.Pool = Depends(get_postgres),
+):
+    if not event:
+        raise HTTPException(status_code=400, detail="No fields provided for insert")
+    query = """
+    INSERT INTO events (name, description, start_date, end_date, city, province, event_website, organizer, active, map_link, event_type_id, multi_day)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    RETURNING id, name, description, start_date, end_date, city, province, event_website, organizer, map_link, event_type_id, multi_day;
+    """
+    query_filters = [
+        event.name,
+        event.description,
+        event.start_date,
+        event.end_date,
+        event.city,
+        event.province,
+        event.event_website,
+        event.organizer,
+        event.active,
+        event.map_link,
+        event.event_type_id,
+        event.multi_day
+    ]
+    return await insert_with_error_handling(
+        db_pool=db_pool, query=query, query_filters=query_filters, model=Event
+    )
+
+
+@event_router.patch("/{event_id}", status_code=status.HTTP_200_OK)
+async def update_event(
+    event_id: int,
+    event: Event,
+    db_pool: asyncpg.Pool = Depends(get_postgres),
+):
+    if not event:
+        raise HTTPException(status_code=400, detail="No fields provided for update")
+    query = f"""UPDATE events SET 
+    name = $1, description = $2, start_date = $3, end_date = $4, city = $5, 
+    province = $6, event_website = $7, organizer = $8, active = $9, map_link = $10, 
+    event_type_id = $11, multi_day=$12 WHERE id = $13;"""
+    query_filters = [
+        event.name,
+        event.description,
+        event.start_date,
+        event.end_date,
+        event.city,
+        event.province,
+        event.event_website,
+        event.organizer,
+        event.active,
+        event.map_link,
+        event.event_type_id,
+        event.multi_day,
+        event_id,
+    ]
+    return await patch_with_error_handling(
+        db_pool=db_pool, query=query, query_filters=query_filters, model=Event
+    )
+
+
+@event_router.delete("/{event_id}", status_code=status.HTTP_200_OK)
+async def delete_event(
+    event_id: int,
+    db_pool: asyncpg.Pool = Depends(get_postgres),
+):
+    if not event_id:
+        raise HTTPException(status_code=400, detail="No id provided for deleting")
+    query = f"""
+    delete from events where id = $1;
+    """
+    return await delete_with_error_handling(
+        db_pool=db_pool, query=query, query_filters=event_id, model=Event
+    )
