@@ -2,10 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from db import init_postgres, close_postgres
 from api.v1.route_events import event_router
-from api.v1.route_user import user_router
 from api.v1.route_upload import upload_router
-from api.v1.route_distance import distance_router
-from api.v1.route_events_type import event_type_router
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 

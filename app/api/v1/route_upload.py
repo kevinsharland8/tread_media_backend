@@ -29,7 +29,7 @@ async def uploads(
         run = await extract_from_file(temp_path)
         if not run:
             raise HTTPException(
-                status_code=500, detail=f"cannot find the image in the xlsx file"
+                status_code=500, detail="cannot find the image in the xlsx file"
             )
         else:
             return {"detail": "uploaded successfully"}
@@ -66,14 +66,14 @@ async def uploads_images(
             )
         try:
             await insert_data(event_id, image_name)
-        except:
+        except Exception as e:
             raise HTTPException(
-                status_code=500, detail=f"Failed to insert image to db"
+                status_code=500, detail=f"Failed to insert image to db: {e}"
             )
         try:
             complete_path_image = os.path.join(output_directory, image_name)
             upload_to_bucket(complete_path_image, image_name)
-        except:
+        except Exception as e:
             raise HTTPException(
                 status_code=500, detail=f"Failed to load images to bucket: {e}"
             )

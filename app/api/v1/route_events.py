@@ -1,11 +1,8 @@
 from fastapi import HTTPException, APIRouter, Depends, status
-from models import Event, Event_id, EventMainDisplay
+from models import Event_id, EventMainDisplay
 from db import (
     get_postgres,
     fetch_with_error_handling,
-    patch_with_error_handling,
-    delete_with_error_handling,
-    insert_with_error_handling,
 )
 from typing import List
 import asyncpg

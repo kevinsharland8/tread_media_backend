@@ -5,9 +5,8 @@ from utils.upload_google import upload_to_bucket
 from db import get_postgres, insert_with_error_handling, fetch_with_error_handling
 from models import (
     Event,
-    EventType_,
-    EventType_id,
-    Provice_,
+    EventType,
+    Provice,
     JunctionTable,
     EventImage_id,
     EventDistance_id,
@@ -74,7 +73,7 @@ async def insert_event_junction(event_id: int, event_type: int):
     RETURNING id, event_id, event_type_id;
     """
     query_filters = [event_id, event_type]
-    unique_event_id = await insert_with_error_handling(
+    await insert_with_error_handling(
         db_pool=db_pool, query=query, query_filters=query_filters, model=JunctionTable
     )
 
@@ -91,7 +90,7 @@ async def insert_event_distances(event_id: int, day: int, distance: int):
     RETURNING id, event_id, day, distance;
     """
     query_filters = [event_id, day, distance]
-    unique_event_id = await insert_with_error_handling(
+    await insert_with_error_handling(
         db_pool=db_pool,
         query=query,
         query_filters=query_filters,
@@ -107,7 +106,7 @@ async def get_event_type(name):
     select id, type from event_types where type = $1;
     """
     data_return = await fetch_with_error_handling(
-        db_pool=db_pool, query=query, query_filters=name.strip(), model=EventType_
+        db_pool=db_pool, query=query, query_filters=name.strip(), model=EventType
     )
     return data_return.id
 
@@ -118,7 +117,7 @@ async def get_province(province):
     select id, p_name from provinces where p_name = $1;
     """
     data_return = await fetch_with_error_handling(
-        db_pool=db_pool, query=query, query_filters=province.strip(), model=Provice_
+        db_pool=db_pool, query=query, query_filters=province.strip(), model=Provice
     )
     return data_return.id
 
@@ -216,7 +215,7 @@ async def extract_from_file(file):
 
             # insert into the images table
             try:
-                insert_into_tables_images = await insert_data_images_table(
+                await insert_data_images_table(
                     insert_into_tables, clean_name
                 )
             except Exception as e:

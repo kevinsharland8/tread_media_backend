@@ -1,6 +1,5 @@
-from pydantic import BaseModel, Field, HttpUrl, model_validator
-from datetime import datetime, date
-from decimal import Decimal
+from pydantic import BaseModel, Field, model_validator
+from datetime import date
 from typing import Optional, List
 import json
 
@@ -36,7 +35,7 @@ class Event_id(BaseModel):
     multi_day: bool = False
 
 
-class EventType_(BaseModel):
+class EventType(BaseModel):
     id: int
     type: str = Field(..., max_length=100)
 
@@ -45,12 +44,8 @@ class EventType_id(BaseModel):
     type: str = Field(..., max_length=100)
 
 
-class Provice_(BaseModel):
+class Provice(BaseModel):
     id: int
-    p_name: str = Field(..., max_length=100)
-
-
-class Provice_id(BaseModel):
     p_name: str = Field(..., max_length=100)
 
 
@@ -59,31 +54,10 @@ class JunctionTable(BaseModel):
     event_type_id: int
 
 
-class JunctionTable_id(BaseModel):
-    id: int
-    event_id: int
-    event_type_id: int    
-
-
-
-class EventImage(BaseModel):
-    id: int
-    event_id: int
-    headline: bool = False
-    url: str = Field(..., max_length=1000)
-
-
 class EventImage_id(BaseModel):
     event_id: int
     headline: bool = False
     url: str = Field(..., max_length=1000)
-
-
-class EventDistance(BaseModel):
-    id: int
-    event_id: int
-    day: int
-    distance: int
 
 
 class EventDistance_id(BaseModel):
@@ -92,34 +66,18 @@ class EventDistance_id(BaseModel):
     distance: int
 
 
-class Image(BaseModel):
+class ImageDisplay(BaseModel):
     url: str = Field(..., max_length=1000)
     headline: bool
 
 
-class DayDistance(BaseModel):
+class DayDistanceDisplay(BaseModel):
     day: int
     distance: int
 
 
-class EventType(BaseModel):
+class EventTypeDisplay(BaseModel):
     event_type: str = Field(..., max_length=1000)
-
-class ExcelLoader(BaseModel):
-    id: int
-    name: str = Field(..., max_length=100)
-    description: str = Field(..., max_length=1000)
-    start_date: date
-    end_date: date
-    city: str = Field(..., max_length=100)
-    province: str = Field(..., max_length=100)
-    event_website: str = Field(..., max_length=1000)
-    organizer: str = Field(..., max_length=100)
-    active: bool = True
-    map_link: Optional[str] = Field(None, max_length=1000)
-    multi_day: bool = False   
-    distances: int
-
 
 
 class EventMainDisplay(BaseModel):
@@ -134,12 +92,12 @@ class EventMainDisplay(BaseModel):
     active: bool = True
     map_link: Optional[str] = Field(None, max_length=1000)
     # allows for the data been returned from postgres as json to be added to the model
-    images: List[Image] = Field(default_factory=list)
+    images: List[ImageDisplay] = Field(default_factory=list)
     # allows for the data been returned from postgres as json to be added to the model
-    day_distance: List[DayDistance] = Field(default_factory=list)
+    day_distance: List[DayDistanceDisplay] = Field(default_factory=list)
     multi_day: bool = False
     # allows for the data been returned from postgres as json to be added to the model
-    event_type: List[EventType] = Field(default_factory=list)
+    event_type: List[EventTypeDisplay] = Field(default_factory=list)
     p_name: str = Field(..., max_length=100)
 
     # @model_validator is used to convert the json string into a list of dictionaries
@@ -161,61 +119,3 @@ class EventMainDisplay(BaseModel):
             except Exception:
                 values["event_type"] = []
         return values
-
-
-# base model for the users (updating and adding data)
-class User(BaseModel):
-    email: str
-    first_name: str
-    last_name: str
-    google_id: str
-    created_at: datetime
-    updated_at: datetime
-
-
-# base model for the users with the id (returning data)
-class User_id(BaseModel):
-    id: int
-    email: str
-    first_name: str
-    last_name: str
-    google_id: str
-    created_at: datetime
-    updated_at: datetime
-
-
-# base model for the distance (updateing and adding data)
-class Distance(BaseModel):
-    distance: Decimal
-
-
-# base model for the distance with the id (return data)
-class Distance_id(BaseModel):
-    id: int
-    distance: Decimal
-
-
-# base model for the event images (updateing and adding data)
-class Evnet_image(BaseModel):
-    event_id: int
-    headline: bool
-    image_url: str
-
-
-# base model for the event images with the id (return data)
-class Evnet_image_id(BaseModel):
-    id: int
-    event_id: int
-    headline: bool
-    image_url: str
-
-
-# base model for the event type (updateing and adding data)
-class Event_type(BaseModel):
-    event_name: str
-
-
-# base model for the event type with the id (return data)
-class Event_type_id(BaseModel):
-    id: int
-    event_name: str
