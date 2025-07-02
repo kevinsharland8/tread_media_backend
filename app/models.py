@@ -119,3 +119,18 @@ class EventMainDisplay(BaseModel):
             except Exception:
                 values["event_type"] = []
         return values
+
+
+class ErrorCreate_id(BaseModel):
+    id: int
+    row_number: int
+    error: str = Field(..., max_length=500)
+    inserted: bool
+    run_date: date
+
+
+class ErrorCreate(BaseModel):
+    row_number: int
+    error: str = Field(..., max_length=500)
+    inserted: bool
+    run_date: date

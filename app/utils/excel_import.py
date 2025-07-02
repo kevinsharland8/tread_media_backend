@@ -3,6 +3,7 @@ from openpyxl_image_loader import SheetImageLoader
 import os
 from utils.upload_google import upload_to_bucket
 from db import get_postgres, insert_with_error_handling, fetch_with_error_handling
+from pydantic import ValidationError
 from models import (
     Event,
     EventType,
@@ -10,7 +11,9 @@ from models import (
     JunctionTable,
     EventImage_id,
     EventDistance_id,
+    ErrorCreate_id,
 )
+from datetime import datetime
 
 
 async def insert_data_event_table(event: Event, event_image: str) -> Event:
@@ -100,6 +103,25 @@ async def insert_event_distances(event_id: int, day: int, distance: int):
     return "unique_event_id"
 
 
+async def insert_error(row_number, error, inserted, run_date):
+    if row_number is None or error is None or inserted is None:
+        raise ValueError("some or no fields were provided for inserting")
+    db_pool = await get_postgres()
+    query = """
+    INSERT INTO errors (row_number, error, inserted, run_date)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, row_number, error, inserted, run_date;
+    """
+    query_filters = [row_number, error, inserted, run_date]
+    await insert_with_error_handling(
+        db_pool=db_pool,
+        query=query,
+        query_filters=query_filters,
+        model=ErrorCreate_id,
+    )
+    return "error inserted"
+
+
 async def get_event_type(name):
     db_pool = await get_postgres()
     query = """
@@ -125,7 +147,7 @@ async def get_province(province):
 async def extract_from_file(file):
     workbook = openpyxl.load_workbook(file)
     # workbook = openpyxl.load_workbook("/home/kevin/projects/tread-events-python/app/utils/excel_with_image.xlsx")
-    sheet = workbook["Sheet2"]
+    sheet = workbook["testing"]
     output_directory = "/home/kevin/projects/tread-events-python/images/"
     # Initialize image loader
     image_loader = SheetImageLoader(sheet)
@@ -142,26 +164,48 @@ async def extract_from_file(file):
             row_num = row[0].row  # Get the row number
             row_values = [cell.value for cell in row]
             row_dict = dict(zip(headers, row_values))
-
+            print(
+                "----------------------------------------------------------------------------------------------------------------------------"
+            )
+            print(row_num, row_values)
             # convert the string of event types into a list
-            eti = row_dict["event_type_id"]
-            if "," in eti:
-                update_event_type = eti.split(",")
-            else:
-                update_event_type = [eti]
-            row_dict.update({"event_type_id": update_event_type})
+            try:
+                eti = row_dict["event_type_id"]
+                if "," in eti:
+                    update_event_type = eti.split(",")
+                else:
+                    update_event_type = [eti]
+                row_dict.update({"event_type_id": update_event_type})
+            except Exception as e:
+                error_message = (
+                    "event type was not provided, please check all data is povided"
+                )
+                print(error_message)
+                await insert_error(row_num, error_message, False, datetime.now().date())
+                continue
 
             # convert the string of distances into a list
-            ud = str(row_dict["distances"])
-            if "," in ud:
-                update_distance = ud.split(",")
+            if row_dict["distances"] is not None:
+                ud = str(row_dict["distances"])
+                if "," in ud:
+                    update_distance = ud.split(",")
+                else:
+                    update_distance = [ud]
+                row_dict.update({"distances": update_distance})
             else:
-                update_distance = [ud]
-            row_dict.update({"distances": update_distance})
+                error_message = (
+                    "distance was not provided, please check all data is povided"
+                )
+                print(error_message)
+                await insert_error(row_num, error_message, False, datetime.now().date())
+                continue
 
             # get the id of the province from the province table
-            provice_id = await get_province(row_dict["province"])
-            row_dict.update({"province": provice_id})
+            try:
+                provice_id = await get_province(row_dict["province"])
+                row_dict.update({"province": provice_id})
+            except Exception as e:
+                row_dict.update({"province": None})
 
             # data for the events table
             insert_data_event = {
@@ -177,27 +221,43 @@ async def extract_from_file(file):
                 "map_link": row_dict["map_link"],
                 "multi_day": row_dict["multi_day"],
             }
-
-            event = Event(**insert_data_event)
-
+            try:
+                event = Event(**insert_data_event)
+            except ValidationError as e:
+                error_message = f"{e.errors()[0]['loc'][0]} was not provided, please check all data is povided"
+                print(error_message)
+                await insert_error(row_num, error_message, False, datetime.now().date())
+                continue
             # need to update this if the image column changes
             image_cell = f"N{row_num}"
             if image_loader.image_in(image_cell):
                 image = image_loader.get(image_cell)
-                clean_name = f"{row_dict['name']}_{row_dict['start_date']}.png"
+                clean_date = row_dict["start_date"].date()
+                clean_name = f"{row_dict['name']}_{clean_date}.png"
+                clean_name = "".join(clean_name.split())
                 complete_path_image = os.path.join(output_directory, clean_name)
                 image.save(complete_path_image)
                 try:
                     upload_to_bucket(complete_path_image, clean_name)
+                    use_default_image = False
                 except Exception as e:
                     print(f"there is a n error copying it to the bucket {e}")
+            else:
+                error_message = "image was not provided, data was still inserted"
+                print(error_message)
+                await insert_error(row_num, error_message, True, datetime.now().date())
+                use_default_image = True
+                # continue
 
             # insert into the events table
             try:
                 insert_into_tables = await insert_data_event_table(event, clean_name)
             except Exception as e:
                 progress = False
-                print(f"there is a n error inserting the data into events {e}")
+                error_message = f"{e}"
+                print(error_message)
+                await insert_error(row_num, error_message, False, datetime.now().date())
+                continue
 
             # insert into junction table
             # get the id of the event from the event_types table
@@ -214,10 +274,10 @@ async def extract_from_file(file):
                 )
 
             # insert into the images table
+            if use_default_image:
+                clean_name = "default.png"
             try:
-                await insert_data_images_table(
-                    insert_into_tables, clean_name
-                )
+                await insert_data_images_table(insert_into_tables, clean_name)
             except Exception as e:
                 progress = False
                 print(f"there is a n error inserting the data into images {e}")
@@ -237,7 +297,6 @@ async def extract_from_file(file):
                         )
                 else:
                     for event_distance_ in row_dict["distances"]:
-
                         counter = counter + 1
                         await insert_event_distances(
                             int(insert_into_tables),
