@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
-from datetime import date
+from datetime import date, datetime
 from typing import Optional, List
 import json
 
@@ -126,11 +126,11 @@ class ErrorCreate_id(BaseModel):
     row_number: int
     error: str = Field(..., max_length=500)
     inserted: bool
-    run_date: date
+    run_date: datetime
 
 
 class ErrorCreate(BaseModel):
     row_number: int
     error: str = Field(..., max_length=500)
     inserted: bool
-    run_date: date
+    run_date: datetime

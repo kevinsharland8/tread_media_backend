@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS public.errors
     row_number integer NOT NULL,
     error character varying(500) COLLATE pg_catalog."default" NOT NULL,
     inserted boolean NOT NULL DEFAULT false,
-    run_date date NOT NULL,
+    run_date timestamp without time zone NOT NULL,
     CONSTRAINT errors_pkey PRIMARY KEY (id)
 );
 
@@ -177,7 +177,8 @@ INSERT INTO public.event_types (type) VALUES
 ('24-Hour'),
 ('Ultra-endurance'),
 ('Enduro'),
-('Downhill');
+('Downhill'),
+('Half-marathon');
 
 INSERT INTO public.provinces (p_name) VALUES
 ('Free State'),

@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from db import init_postgres, close_postgres
 from api.v1.route_events import event_router
 from api.v1.route_upload import upload_router
+from api.v1.route_error import error_router
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -19,7 +20,10 @@ app: FastAPI = FastAPI(lifespan=lifespan, title="Tread Media Application")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200", "http://192.168.68.145:4200"],  # Or restrict to specific domains
+    allow_origins=[
+        "http://localhost:4200",
+        "http://192.168.68.145:4200",
+    ],  # Or restrict to specific domains
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,11 +36,13 @@ app.include_router(event_router)
 app.include_router(upload_router)
 # app.include_router(distance_router)
 # app.include_router(event_type_router)
+app.include_router(error_router)
 
 
 @app.get("/")
 async def home():
     return {"status": "running"}
+
 
 # starting up the application
 if __name__ == "__main__":

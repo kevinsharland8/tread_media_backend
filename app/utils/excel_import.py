@@ -181,7 +181,7 @@ async def extract_from_file(file):
                     "event type was not provided, please check all data is povided"
                 )
                 print(error_message)
-                await insert_error(row_num, error_message, False, datetime.now().date())
+                await insert_error(row_num, error_message, False, datetime.now())
                 continue
 
             # convert the string of distances into a list
@@ -197,7 +197,7 @@ async def extract_from_file(file):
                     "distance was not provided, please check all data is povided"
                 )
                 print(error_message)
-                await insert_error(row_num, error_message, False, datetime.now().date())
+                await insert_error(row_num, error_message, False, datetime.now())
                 continue
 
             # get the id of the province from the province table
@@ -226,7 +226,7 @@ async def extract_from_file(file):
             except ValidationError as e:
                 error_message = f"{e.errors()[0]['loc'][0]} was not provided, please check all data is povided"
                 print(error_message)
-                await insert_error(row_num, error_message, False, datetime.now().date())
+                await insert_error(row_num, error_message, False, datetime.now())
                 continue
             # need to update this if the image column changes
             image_cell = f"N{row_num}"
@@ -245,7 +245,7 @@ async def extract_from_file(file):
             else:
                 error_message = "image was not provided, data was still inserted"
                 print(error_message)
-                await insert_error(row_num, error_message, True, datetime.now().date())
+                await insert_error(row_num, error_message, True, datetime.now())
                 use_default_image = True
                 # continue
 
@@ -256,7 +256,7 @@ async def extract_from_file(file):
                 progress = False
                 error_message = f"{e}"
                 print(error_message)
-                await insert_error(row_num, error_message, False, datetime.now().date())
+                await insert_error(row_num, error_message, False, datetime.now())
                 continue
 
             # insert into junction table
